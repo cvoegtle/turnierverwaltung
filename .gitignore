@@ -1,0 +1,14 @@
+*.iml
+.idea/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+data/
+*.tmp

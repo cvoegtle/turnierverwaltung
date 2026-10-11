@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Runde {{ round_num }} – {{ game.name }} ({{ tournament.name }}){% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <div class="round-nav-tabs">
+            {% for r in (1, 2, 3, 4) %}
+            <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=r) }}" class="tab-link {% if r == round_num %}active{% endif %}">
+                Runde {{ r }}
+            </a>
+            {% endfor %}
+        </div>
+        <h1>Runde {{ round_num }}: {{ game.name }}</h1>
+        <p class="subtitle">
+            Turnier: <strong>{{ tournament.name }}</strong>
+            {% if tables %}
+                &nbsp;|&nbsp; {{ tables | length }} Tische für diese Runde eingeteilt
+            {% else %}
+                &nbsp;|&nbsp; Noch keine Tischverteilung vorhanden.
+            {% endif %}
+        </p>
+    </div>
+    <div>
+        {% if not tables %}
+        <form action="{{ url_for('main.generate_seating', t_id=tournament.id) }}" method="POST">
+            <button type="submit" class="btn btn-primary">🎲 Tischverteilung jetzt generieren</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="scoring-rules-banner">
+    <div class="banner-title">ℹ️ Wertungsregeln am Tisch:</div>
+    <div class="banner-content">
+        <span><strong>4er-Tisch:</strong> 1. Platz: 5 Pkt. | 2. Platz: 3 Pkt. | 3. Platz: 2 Pkt. | 4. Platz: 1 Pkt.</span>
+        <span><strong>3er-Tisch:</strong> 1. Platz: 5 Pkt. | 2. Platz: 3 Pkt. | 3. Platz: 1 Pkt.</span>
+        <span><em>Bei Gleichstand teilen sich die Spieler die Summe der Plätze zu gleichen Teilen.</em></span>
+    </div>
+</div>
+
+{% if tables %}
+<div class="tables-grid">
+    {% for table in tables %}
+    <div class="table-card {% if table.is_completed %}table-completed{% endif %}">
+        <div class="table-card-header">
+            <div>
+                <h3>Tisch {{ table.table_number }}</h3>
+                <span class="badge-capacity">
+                    {% if table.capacity == 4 %}4er-Tisch{% else %}3er-Tisch{% endif %}
+                </span>
+            </div>
+            <div>
+                {% if table.is_completed %}
+                    <span class="status-badge badge-success">✓ Abgeschlossen</span>
+                {% else %}
+                    <span class="status-badge badge-warning">Offen</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="table-seats-list">
+            <h4>Sitzordnung:</h4>
+            <div class="seats-chips">
+                {% for seat in table.seats %}
+                {% set p = tournament.get_player(seat.player_number) %}
+                <div class="seat-chip">
+                    <span class="seat-pos">Pos. {{ seat.position }}</span>
+                    <span class="seat-player">#{{ seat.player_number }} {{ p.name if p else 'Unbekannt' }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if table.is_completed %}
+        <div class="table-results-view">
+            <h4>Eingetragenes Ergebnis:</h4>
+            <table class="table-mini">
+                <thead>
+                    <tr>
+                        <th>Rang</th>
+                        <th>Spieler</th>
+                        <th>Punkte</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in table.results | sort(attribute='rank') %}
+                    {% set p = tournament.get_player(res.player_number) %}
+                    <tr>
+                        <td><span class="rank-badge">Platz {{ res.rank }}</span></td>
+                        <td>#{{ res.player_number }} {{ p.name if p else '' }}</td>
+                        <td><strong>{{ "%.2f"|format(res.points_awarded) }}</strong> Pkt.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="table-actions-completed">
+                <button type="button" class="btn btn-sm btn-outline" onclick="document.getElementById('edit-table-{{ table.table_number }}').style.display='block'; this.parentElement.style.display='none';">
+                    ✏️ Ergebnis bearbeiten
+                </button>
+                <form action="{{ url_for('main.clear_table_result', t_id=tournament.id, round_num=round_num, table_num=table.table_number) }}" method="POST" style="display:inline;" onsubmit="return confirm('Ergebnis für diesen Tisch wirklich zurücksetzen?');">
+                    <button type="submit" class="btn btn-sm btn-danger">Zurücksetzen</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <div id="edit-table-{{ table.table_number }}" class="table-result-form-wrapper" style="{% if table.is_completed %}display: none;{% endif %}">
+            <h4>{% if table.is_completed %}Ergebnis korrigieren{% else %}Ergebnis erfassen{% endif %}:</h4>
+            <form action="{{ url_for('main.submit_table_result', t_id=tournament.id, round_num=round_num, table_num=table.table_number) }}" method="POST">
+                <table class="table-mini">
+                    <thead>
+                        <tr>
+                            <th>Spieler</th>
+                            <th style="width: 110px;">Platz (Rang)</th>
+                            <th style="width: 100px;">Spielpunkte (opt.)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for seat in table.seats %}
+                        {% set p = tournament.get_player(seat.player_number) %}
+                        {% set prev_res = table.get_result_for_player(seat.player_number) %}
+                        <tr>
+                            <td>
+                                <strong>#{{ seat.player_number }} {{ p.name if p else '' }}</strong>
+                                <span class="text-muted">(Pos {{ seat.position }})</span>
+                            </td>
+                            <td>
+                                <select name="rank_{{ seat.player_number }}" class="form-input-sm" required>
+                                    <option value="">– Rang –</option>
+                                    {% for rk in range(1, table.capacity + 1) %}
+                                    <option value="{{ rk }}" {% if prev_res and prev_res.rank == rk %}selected{% endif %}>
+                                        Platz {{ rk }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" step="any" name="score_{{ seat.player_number }}" class="form-input-sm" placeholder="optional" value="{{ prev_res.raw_score if (prev_res and prev_res.raw_score is not none) else '' }}">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="form-actions-inline">
+                    <button type="submit" class="btn btn-success btn-sm">💾 Ergebnis speichern</button>
+                    {% if table.is_completed %}
+                    <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('edit-table-{{ table.table_number }}').style.display='none'; document.querySelector('#table-{{ table.table_number }} .table-actions-completed').style.display='flex';">Abbrechen</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card empty-state">
+    <h3>Noch keine Tische eingeteilt</h3>
+    <p>Registriere zuerst die Spieler unter <a href="{{ url_for('main.players', t_id=tournament.id) }}">Spieler</a> und generiere anschließend die Tischverteilung.</p>
+</div>
+{% endif %}
+
+{% endblock %}

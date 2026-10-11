@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Turniere{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Turnierverwaltung</h1>
+        <p class="subtitle">Übersicht aller Turniere des Spieleclub Paderborns</p>
+    </div>
+</div>
+
+<div class="two-col-layout">
+    <div class="main-column">
+        <div class="card">
+            <h2>Vorhandene Turniere</h2>
+            {% if tournaments %}
+                <div class="tournaments-grid">
+                    {% for t in tournaments %}
+                    <div class="tournament-card">
+                        <div class="tournament-card-header">
+                            <div>
+                                <h3 class="tournament-title">{{ t.name }}</h3>
+                                {% if t.date %}
+                                    <div class="tournament-date">📅 Termin: <strong>{{ t.formatted_date }}</strong></div>
+                                {% else %}
+                                    <div class="tournament-date text-muted">Kein Termin festgelegt</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="tournament-meta">
+                            <span>👥 {{ t.players | length }} Spieler</span>
+                            <span>🎯 {{ t.rounds | length }} Runden</span>
+                        </div>
+
+                        <div class="tournament-card-actions">
+                            <a href="{{ url_for('main.tournament_dashboard', t_id=t.id) }}" class="btn btn-primary btn-sm">
+                                Turnier öffnen →
+                            </a>
+                            <form action="{{ url_for('main.delete_tournament', t_id=t.id) }}" method="POST" onsubmit="return confirm('Möchtest du das Turnier \'{{ t.name }}\' wirklich unwiderruflich löschen?');">
+                                <button type="submit" class="btn btn-sm btn-danger">Löschen</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>Noch keine Turniere vorhanden. Lege rechts das erste Turnier an!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="side-column">
+        <div class="card card-highlight">
+            <h3>＋ Neues Turnier anlegen</h3>
+            <p class="form-hint">Gib dem Turnier einen Namen und einen Termin (Datum):</p>
+            <form action="{{ url_for('main.create_tournament') }}" method="POST">
+                <div class="form-group">
+                    <label for="name">Name des Turniers</label>
+                    <input type="text" id="name" name="name" class="form-input" placeholder="z.B. Herbstturnier 2026" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Termin / Datum</label>
+                    <input type="date" id="date" name="date" class="form-input" value="{{ today_date }}">
+                </div>
+
+                <button type="submit" class="btn btn-success btn-block">Turnier anlegen & Spiele eingeben →</button>
+                <p class="form-hint" style="margin-top: 0.6rem; text-align: center; font-size: 0.8rem; color: #475569;">
+                    Geführter Prozess: 1. Basisdaten → 2. Spiele → 3. Spieler
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

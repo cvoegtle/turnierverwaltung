@@ -1,0 +1,11 @@
+.venv/
+.git/
+.gitignore
+.idea/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+tests/
+spec.md
+turnierverwaltung.iml

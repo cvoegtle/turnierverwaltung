@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tournament.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="title-area">
+        <h1>{{ tournament.name }}</h1>
+        <p class="subtitle">
+            {% if tournament.date %}
+                📅 Termin: <strong>{{ tournament.formatted_date }}</strong> &nbsp;&nbsp;
+            {% endif %}
+            <button type="button" class="btn-link" onclick="document.getElementById('edit-tournament-box').style.display = document.getElementById('edit-tournament-box').style.display === 'none' ? 'block' : 'none';">
+                ✏️ Daten bearbeiten
+            </button>
+        </p>
+    </div>
+    <div class="action-buttons">
+        {% if not tournament.rounds and player_count >= 3 %}
+        <form action="{{ url_for('main.generate_seating', t_id=tournament.id) }}" method="POST">
+            <button type="submit" class="btn btn-primary">
+                🎲 Tischverteilung berechnen
+            </button>
+        </form>
+        {% endif %}
+        <a href="{{ url_for('main.standings', t_id=tournament.id) }}" class="btn btn-gold">🏆 Aktuelle Rangliste</a>
+    </div>
+</div>
+
+<div id="edit-tournament-box" class="card" style="display: none; margin-bottom: 1.5rem; background: #f8fafc;">
+    <h3>Turnierdaten bearbeiten</h3>
+    <form action="{{ url_for('main.edit_tournament', t_id=tournament.id) }}" method="POST" class="inline-edit-grid">
+        <div class="form-group">
+            <label for="edit_name">Turniername</label>
+            <input type="text" id="edit_name" name="name" value="{{ tournament.name }}" class="form-input" required>
+        </div>
+        <div class="form-group">
+            <label for="edit_date">Termin / Datum</label>
+            <input type="date" id="edit_date" name="date" value="{{ tournament.date }}" class="form-input">
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 1.25rem;">
+            <button type="submit" class="btn btn-primary btn-sm">Speichern</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('edit-tournament-box').style.display='none';">Abbrechen</button>
+        </div>
+    </form>
+</div>
+
+{% if player_count < 3 or not tournament.rounds %}
+<div class="wizard-banner" style="margin-bottom: 2rem;">
+    <div>
+        <div class="wizard-banner-title">🚀 Turnier einrichten</div>
+        <p class="wizard-banner-text">
+            Lege die 4 Turnierspiele fest und trage die Spieler ein, um das Turnier vorzubereiten.
+        </p>
+    </div>
+    <div class="wizard-banner-actions">
+        <a href="{{ url_for('main.games', t_id=tournament.id, wizard=1) }}" class="btn btn-primary">
+            Einrichtungsassistent starten →
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">{{ player_count }}</div>
+        <div class="stat-label">Registrierte Spieler</div>
+        <div class="stat-footer">
+            <a href="{{ url_for('main.players', t_id=tournament.id) }}">Spieler verwalten →</a>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-value">4</div>
+        <div class="stat-label">Turnierrunden</div>
+        <div class="stat-footer">
+            <a href="{{ url_for('main.games', t_id=tournament.id) }}">Spiele anpassen →</a>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🪑</div>
+        {% if tournament.rounds and tournament.rounds.get(1) %}
+            {% set round1_tables = tournament.rounds.get(1) %}
+            {% set t4 = round1_tables | selectattr("capacity", "equalto", 4) | list | length %}
+            {% set t3 = round1_tables | selectattr("capacity", "equalto", 3) | list | length %}
+            <div class="stat-value">{{ round1_tables | length }} Tische</div>
+            <div class="stat-label">
+                {% if t4 > 0 %}{{ t4 }} Vierertisch{% if t4 > 1 %}e{% endif %}{% endif %}
+                {% if t4 > 0 and t3 > 0 %}, {% endif %}
+                {% if t3 > 0 %}{{ t3 }} Dreiertisch{% if t3 > 1 %}e{% endif %}{% endif %}
+            </div>
+        {% else %}
+            <div class="stat-value">–</div>
+            <div class="stat-label">Noch nicht eingeteilt</div>
+        {% endif %}
+        <div class="stat-footer">
+            {% if player_count < 6 and player_count not in (3, 4) %}
+                <span class="text-muted">Min. 6 Spieler empfohlen</span>
+            {% else %}
+                <span class="text-success">Optimale Tischgröße</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<section class="rounds-section">
+    <h2>Turnierablauf</h2>
+    <div class="rounds-grid">
+        {% for r in rounds_summary %}
+        <div class="round-card {% if r.is_completed %}completed{% elif r.is_generated %}in-progress{% endif %}">
+            <div class="round-card-header">
+                <span class="round-badge">Runde {{ r.round_number }}</span>
+                {% if r.is_completed %}
+                    <span class="status-badge badge-success">✓ Abgeschlossen</span>
+                {% elif r.is_generated %}
+                    <span class="status-badge badge-info">{{ r.completed_tables }} / {{ r.total_tables }} Tische</span>
+                {% else %}
+                    <span class="status-badge badge-secondary">Offen</span>
+                {% endif %}
+            </div>
+            <h3 class="round-game-name">{{ r.game_name }}</h3>
+            <p class="round-info">
+                {% if r.is_generated %}
+                    {{ r.total_tables }} Turniertische aktiv
+                {% else %}
+                    Tischverteilung ausstehend
+                {% endif %}
+            </p>
+            <div class="round-card-footer">
+                <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=r.round_number) }}" class="btn btn-outline">
+                    Zur Runde {{ r.round_number }} →
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<div class="danger-zone">
+    <h3>Turnier-Aktionen (Kritische Aktionen)</h3>
+    <div class="danger-zone-content-list">
+        {% if tournament.rounds and player_count >= 3 %}
+        <div class="danger-action-item">
+            <div>
+                <strong>🎲 Tischverteilung neu berechnen</strong>
+                <p class="danger-action-hint">
+                    Berechnet die Tische für alle 4 Runden neu. <strong>Achtung:</strong> Alle bisher eingetragenen Rundenergebnisse und Punkte werden dabei unwiderruflich gelöscht!
+                </p>
+            </div>
+            <form action="{{ url_for('main.generate_seating', t_id=tournament.id) }}" method="POST" onsubmit="return confirm('ACHTUNG: Möchtest du die Tischverteilung wirklich neu berechnen? Alle bereits erfassten Ergebnisse und Punkte dieses Turniers werden unwiderruflich gelöscht!');">
+                <button type="submit" class="btn btn-warning">Tischverteilung neu berechnen</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="danger-action-item">
+            <div>
+                <strong>🗑️ Turnier löschen</strong>
+                <p class="danger-action-hint">
+                    Dieses gesamte Turnier inklusive aller Spieler, Spiele und Wertungen unwiderruflich entfernen.
+                </p>
+            </div>
+            <form action="{{ url_for('main.delete_tournament', t_id=tournament.id) }}" method="POST" onsubmit="return confirm('Möchtest du das Turnier \'{{ tournament.name }}\' wirklich unwiderruflich löschen?');">
+                <button type="submit" class="btn btn-danger">Turnier löschen</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
