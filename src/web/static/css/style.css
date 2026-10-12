@@ -800,6 +800,30 @@ h4 {
     stroke: currentColor;
 }
 
+.btn-icon-cloud {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.35rem 0.45rem;
+    border-radius: var(--radius);
+    color: var(--primary);
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon-cloud:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-hover);
+    transform: scale(1.1);
+}
+
+.btn-icon-cloud svg {
+    display: block;
+    stroke: currentColor;
+}
+
 /* Buttons */
 .btn {
     display: inline-block;

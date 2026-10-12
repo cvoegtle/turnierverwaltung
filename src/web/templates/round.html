@@ -144,7 +144,14 @@
                     </tbody>
                 </table>
                 <div class="form-actions-inline">
-                    <button type="submit" class="btn btn-success btn-sm">💾 Ergebnis speichern</button>
+                    <button type="submit" class="btn btn-success btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+                            <path d="M12 12v9"></path>
+                            <path d="m16 16-4-4-4 4"></path>
+                        </svg>
+                        Ergebnis speichern
+                    </button>
                     {% if table.is_completed %}
                     <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('edit-table-{{ table.table_number }}').style.display='none'; document.querySelector('#table-{{ table.table_number }} .table-actions-completed').style.display='flex';">Abbrechen</button>
                     {% endif %}

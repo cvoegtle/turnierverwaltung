@@ -89,7 +89,10 @@ def test_players_crud_within_tournament(client):
         follow_redirects=True,
     )
     assert resp.status_code == 200
-    assert "Alice" in resp.get_data(as_text=True)
+    html_content = resp.get_data(as_text=True)
+    assert "Alice" in html_content
+    assert "btn-icon-cloud" in html_content
+    assert "💾" not in html_content
 
     # Bulk add players
     resp = client.post(

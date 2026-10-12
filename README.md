@@ -87,19 +87,29 @@ python run.py
 
 Das Projekt enthält ein für Cloud Run optimiertes `Dockerfile` mit `gunicorn`.
 
-### 1. Container bauen und deployen via Google Cloud CLI:
-```bash
-# Projekt setzen
-gcloud config set project <DEINE_GCP_PROJECT_ID>
+### Konfiguration: Nur bei Bedarf starten & max. 1 Instanz
+Um Kosten zu minimieren (0 € im Leerlauf) und sicherzustellen, dass nie mehr als eine Instanz läuft:
+- `--min-instances 0`: Fährt den Container auf 0 herunter, wenn keine Anfragen anstehen (Cold Start bei Aufruf in ~1-2s).
+- `--max-instances 1`: Verhindert jegliches horizontales Hochskalieren über 1 Container hinaus.
+- `--concurrency 80`: Die einzelne Instanz verarbeitet bis zu 80 Anfragen gleichzeitig über Gunicorn-Worker/Threads.
 
-# Direkt aus dem Quellcode auf Cloud Run deployen
+### 1. Schnelles Deployment mit dem Skript `deploy.sh`:
+```bash
+# Nutzt das aktive gcloud-Projekt oder übergibt eine Project-ID:
+./deploy.sh [DEINE_GCP_PROJECT_ID]
+```
+
+### 2. Oder manuell per Google Cloud CLI:
+```bash
 gcloud run deploy turnierverwaltung \
     --source . \
     --region europe-west3 \
     --platform managed \
-    --allow-unauthenticated \
-    --set-env-vars STORAGE_TYPE=datastore,DATASTORE_PROJECT_ID=<DEINE_GCP_PROJECT_ID>
+    --min-instances 0 \
+    --max-instances 1 \
+    --concurrency 80 \
+    --allow-unauthenticated
 ```
 
-### 2. IAM & Berechtigungen
+### 3. IAM & Berechtigungen
 Das Service-Konto von Cloud Run benötigt die Rolle `roles/datastore.user` (Cloud Datastore-Nutzer) auf dem GCP-Projekt, um auf den Google Datastore zugreifen zu können.
