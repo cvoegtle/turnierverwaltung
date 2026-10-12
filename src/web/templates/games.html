@@ -27,13 +27,8 @@
             <div class="wizard-banner-title">Schritt 2 von 3: Turnierspiele festlegen</div>
             <p class="wizard-banner-text">
                 Für <strong>{{ tournament.name }}</strong>{% if tournament.date %} am <strong>{{ tournament.formatted_date }}</strong>{% endif %}:
-                Trage hier die Spiele für die 4 Turnierrunden ein. In jeder Runde spielen alle Tische dasselbe Spiel.
+                Trage hier die Spiele für die 4 Turnierrunden ein. Alle 4 Spiele müssen erfasst sein und jedes Spiel muss anders heißen.
             </p>
-        </div>
-        <div class="wizard-banner-actions">
-            <a href="{{ url_for('main.players', t_id=tournament.id, wizard=1) }}" class="btn btn-outline btn-sm">
-                Spiele überspringen →
-            </a>
         </div>
     </div>
 </div>
@@ -43,7 +38,7 @@
         <h1>Turnierspiele: {{ tournament.name }}</h1>
         <p class="subtitle">
             {% if tournament.date %}Termin: <strong>{{ tournament.formatted_date }}</strong> &nbsp;|&nbsp; {% endif %}
-            In jeder Runde wird an allen Tischen das gleiche Spiel gespielt
+            In jeder Runde wird an allen Tischen das gleiche Spiel gespielt. Alle 4 Spiele müssen unterschiedlich benannt sein.
         </p>
     </div>
 </div>
@@ -57,18 +52,17 @@
         {% endif %}
         {% for r_num in (1, 2, 3, 4) %}
         {% set game = tournament.get_game(r_num) %}
+        {% set current_val = form_data[r_num] if form_data is defined and form_data else game.name %}
         <div class="form-group">
             <label for="game_{{ r_num }}">
                 <span class="round-badge">Runde {{ r_num }}</span> Spielname
             </label>
-            <input type="text" id="game_{{ r_num }}" name="game_{{ r_num }}" value="{{ game.name }}" class="form-input" required placeholder="z.B. Catan, Carcassonne, Azul, Wingspan">
+            <input type="text" id="game_{{ r_num }}" name="game_{{ r_num }}" value="{{ current_val }}" class="form-input" required placeholder="z.B. Catan, Carcassonne, Azul, Wingspan">
         </div>
         {% endfor %}
         <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-            {% if wizard %}
+            {% if wizard or not tournament.has_all_games() %}
                 <button type="submit" class="btn btn-success btn-lg">Spiele speichern & weiter zu den Spielern →</button>
-                <a href="{{ url_for('main.players', t_id=tournament.id, wizard=1) }}" class="btn btn-outline">Spiele überspringen</a>
-                <a href="{{ url_for('main.tournament_dashboard', t_id=tournament.id) }}" class="btn btn-link">Assistent beenden</a>
             {% else %}
                 <button type="submit" class="btn btn-primary">Spiele speichern</button>
                 <a href="{{ url_for('main.tournament_dashboard', t_id=tournament.id) }}" class="btn btn-outline">Abbrechen</a>
@@ -76,5 +70,43 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+        const inputs = [1, 2, 3, 4].map(function(num) {
+            return document.getElementById('game_' + num);
+        });
+        const trimmedValues = inputs.map(function(input) {
+            return input ? input.value.trim() : '';
+        });
+
+        for (let i = 0; i < trimmedValues.length; i++) {
+            if (!trimmedValues[i]) {
+                e.preventDefault();
+                alert('Spiel für Runde ' + (i + 1) + ' darf nicht leer sein oder nur aus Leerzeichen bestehen.');
+                if (inputs[i]) inputs[i].focus();
+                return;
+            }
+        }
+
+        const lowerValues = trimmedValues.map(function(v) { return v.toLowerCase(); });
+        for (let i = 0; i < lowerValues.length; i++) {
+            for (let j = i + 1; j < lowerValues.length; j++) {
+                if (lowerValues[i] === lowerValues[j]) {
+                    e.preventDefault();
+                    alert('Jedes Spiel muss anders heißen! Runde ' + (i + 1) + ' und Runde ' + (j + 1) + ' haben denselben Namen: "' + trimmedValues[i] + '".');
+                    if (inputs[j]) inputs[j].focus();
+                    return;
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
 

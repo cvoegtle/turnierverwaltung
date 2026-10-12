@@ -52,7 +52,26 @@ def test_player_management():
 
 def test_game_management():
     t = Tournament()
+    # Initially games are not prefilled
+    assert t.get_game(1).name == ""
+    assert t.get_game(2).name == ""
+    assert t.get_game(3).name == ""
+    assert t.get_game(4).name == ""
+    assert t.has_all_games() is False
+
+    # Cannot set empty or pure whitespace name
+    with pytest.raises(ValueError, match="nicht leer"):
+        t.set_game(1, "")
+    with pytest.raises(ValueError, match="nur aus Leerzeichen"):
+        t.set_game(1, "   ")
+
     t.set_game(1, "Catan")
+    assert t.get_game(1).name == "Catan"
+
+    # Cannot set duplicate name (case-insensitive)
+    with pytest.raises(ValueError, match="Jedes Spiel muss anders heißen"):
+        t.set_game(2, "catan")
+
     t.set_game(2, "Carcassonne")
     t.set_game(3, "Azul")
     t.set_game(4, "Wingspan")
@@ -61,9 +80,24 @@ def test_game_management():
     assert t.get_game(2).name == "Carcassonne"
     assert t.get_game(3).name == "Azul"
     assert t.get_game(4).name == "Wingspan"
+    assert t.has_all_games() is True
 
+    # Invalid round number
     with pytest.raises(ValueError):
         t.set_game(5, "Invalid")
+
+    # set_all_games with duplicates or missing
+    with pytest.raises(ValueError, match="Jedes Spiel muss anders heißen"):
+        t.set_all_games({1: "Catan", 2: "Catan", 3: "Azul", 4: "Wingspan"})
+
+    with pytest.raises(ValueError, match="nicht leer"):
+        t.set_all_games({1: "Catan", 2: "   ", 3: "Azul", 4: "Wingspan"})
+
+    # Valid set_all_games with multi-word names
+    t.set_all_games({1: "Die Siedler", 2: "Stone Age", 3: "Azul", 4: "Wingspan"})
+    assert t.get_game(1).name == "Die Siedler"
+    assert t.get_game(2).name == "Stone Age"
+    assert t.has_all_games() is True
 
 
 def test_tournament_lifecycle_and_standings():

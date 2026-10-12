@@ -43,11 +43,28 @@ def test_tournaments_index_and_creation(client):
     assert resp.status_code == 200
     assert "Herbstturnier 2026" in resp.get_data(as_text=True)
     assert "24.10.2026" in resp.get_data(as_text=True)
+    assert "Spiele unvollständig" in resp.get_data(as_text=True)
     repo = client.application.extensions["repository"]
     t = repo.list_all()[0]
     assert f"ID: {t.id}" not in resp.get_data(as_text=True)
 
-    # Check that dashboard does not display tournament ID
+    # Dashboard cannot be accessed before games are entered (redirects to games)
+    dash_resp = client.get(f"/tournaments/{t.id}")
+    assert dash_resp.status_code == 302
+    assert dash_resp.headers["Location"].endswith(f"/tournaments/{t.id}/games?wizard=1")
+
+    # Enter games
+    client.post(
+        f"/tournaments/{t.id}/games",
+        data={
+            "game_1": "Game 1",
+            "game_2": "Game 2",
+            "game_3": "Game 3",
+            "game_4": "Game 4",
+        },
+    )
+
+    # Now dashboard can be accessed and does not display tournament ID
     dash_resp = client.get(f"/tournaments/{t.id}")
     assert dash_resp.status_code == 200
     assert "Turnier-ID" not in dash_resp.get_data(as_text=True)
@@ -60,6 +77,8 @@ def test_edit_and_delete_tournament(client):
     client.post("/tournaments/new", data={"name": "Altes Turnier", "date": "2026-05-01"})
     repo = client.application.extensions["repository"]
     t = repo.list_all()[0]
+    t.set_all_games({1: "Spiel A", 2: "Spiel B", 3: "Spiel C", 4: "Spiel D"})
+    repo.save(t)
 
     # Edit tournament
     resp = client.post(
@@ -81,6 +100,18 @@ def test_players_crud_within_tournament(client):
     client.post("/tournaments/new", data={"name": "Turnier 1", "date": "2026-10-24"})
     repo = client.application.extensions["repository"]
     t = repo.list_all()[0]
+
+    # Trying to add player before games are entered redirects to games
+    blocked_resp = client.post(
+        f"/tournaments/{t.id}/players/add",
+        data={"number": "1", "name": "Alice"},
+    )
+    assert blocked_resp.status_code == 302
+    assert blocked_resp.headers["Location"].endswith(f"/tournaments/{t.id}/games?wizard=1")
+
+    # Enter games
+    t.set_all_games({1: "Spiel 1", 2: "Spiel 2", 3: "Spiel 3", 4: "Spiel 4"})
+    repo.save(t)
 
     # Add single player
     resp = client.post(
@@ -154,14 +185,7 @@ def test_complete_tournament_flow(client):
     repo = client.application.extensions["repository"]
     t = repo.list_all()[0]
 
-    # 2. Register 8 players
-    for i in range(1, 9):
-        client.post(
-            f"/tournaments/{t.id}/players/add",
-            data={"number": str(i), "name": f"Player {i}"},
-        )
-
-    # 3. Configure games
+    # 2. Configure games (must be done before players / rounds!)
     client.post(
         f"/tournaments/{t.id}/games",
         data={
@@ -171,6 +195,13 @@ def test_complete_tournament_flow(client):
             "game_4": "Game D",
         },
     )
+
+    # 3. Register 8 players
+    for i in range(1, 9):
+        client.post(
+            f"/tournaments/{t.id}/players/add",
+            data={"number": str(i), "name": f"Player {i}"},
+        )
 
     # 4. Generate seating
     resp = client.post(f"/tournaments/{t.id}/rounds/generate", follow_redirects=True)
@@ -252,7 +283,46 @@ def test_guided_tournament_creation_wizard(client):
     assert "15.11.2026" in games_html
     assert "Spiele speichern &amp; weiter zu den Spielern →" in games_html or "Spiele speichern & weiter zu den Spielern →" in games_html
 
-    # Submit games in wizard mode
+    # Requirement checks: games are not prefilled, no skipping or cancel buttons
+    assert 'value=""' in games_html
+    assert "Spiele überspringen" not in games_html
+    assert "Assistent beenden" not in games_html
+    assert "Abbrechen" not in games_html
+
+    # Cannot leave games step before games are entered
+    skip_attempt = client.get(f"/tournaments/{t.id}/players")
+    assert skip_attempt.status_code == 302
+    assert skip_attempt.headers["Location"].endswith(f"/tournaments/{t.id}/games?wizard=1")
+
+    # Cannot submit duplicate names
+    dup_resp = client.post(
+        f"/tournaments/{t.id}/games",
+        data={
+            "wizard": "1",
+            "game_1": "Catan",
+            "game_2": "catan",
+            "game_3": "Azul",
+            "game_4": "Wingspan",
+        },
+    )
+    assert dup_resp.status_code == 200
+    assert "Jedes Spiel muss anders heißen" in dup_resp.get_data(as_text=True)
+
+    # Cannot submit whitespace-only names
+    ws_resp = client.post(
+        f"/tournaments/{t.id}/games",
+        data={
+            "wizard": "1",
+            "game_1": "   ",
+            "game_2": "Carcassonne",
+            "game_3": "Azul",
+            "game_4": "Wingspan",
+        },
+    )
+    assert ws_resp.status_code == 200
+    assert "darf nicht leer sein" in ws_resp.get_data(as_text=True)
+
+    # Submit valid games in wizard mode
     resp_games_post = client.post(
         f"/tournaments/{t.id}/games",
         data={
@@ -304,4 +374,86 @@ def test_guided_tournament_creation_wizard(client):
     assert "Turnier-Setup erfolgreich abgeschlossen" in final_html
     assert "Runde 1" in final_html
     assert "Die Siedler von Catan" in final_html
+
+
+def test_game_recording_mandatory_and_validation(client):
+    # 1. Create a tournament
+    client.post("/tournaments/new", data={"name": "Sperr-Turnier", "date": "2026-10-30"})
+    repo = client.application.extensions["repository"]
+    t = repo.list_all()[0]
+
+    # Verify that trying to access any subroute redirects to games
+    for route in [
+        f"/tournaments/{t.id}",
+        f"/tournaments/{t.id}/players",
+        f"/tournaments/{t.id}/rounds/1",
+        f"/tournaments/{t.id}/standings",
+        f"/tournaments/{t.id}/export/csv",
+        f"/tournaments/{t.id}/export/json",
+    ]:
+        resp = client.get(route)
+        assert resp.status_code == 302, f"Expected 302 for {route}"
+        assert resp.headers["Location"].endswith(f"/tournaments/{t.id}/games?wizard=1")
+
+    # Verify navbar on games page only shows games (Pflicht), no overview/players/rounds/standings
+    games_resp = client.get(f"/tournaments/{t.id}/games")
+    games_html = games_resp.get_data(as_text=True)
+    assert "Spiele erfassen (Pflicht)" in games_html
+    assert f"/tournaments/{t.id}/players" not in games_html
+    assert f"/tournaments/{t.id}/standings" not in games_html
+    assert "Spiele überspringen" not in games_html
+    assert "Abbrechen" not in games_html
+
+    # Cannot save if any game is empty or pure whitespace
+    resp_empty = client.post(
+        f"/tournaments/{t.id}/games",
+        data={
+            "game_1": "Catan",
+            "game_2": "   ",
+            "game_3": "Azul",
+            "game_4": "Wingspan",
+        },
+    )
+    assert resp_empty.status_code == 200
+    assert "darf nicht leer sein" in resp_empty.get_data(as_text=True)
+    assert 'value="Catan"' in resp_empty.get_data(as_text=True)
+
+    # Cannot save if games have duplicate names (case-insensitive and trimmed)
+    resp_dup = client.post(
+        f"/tournaments/{t.id}/games",
+        data={
+            "game_1": "  Catan  ",
+            "game_2": "catan",
+            "game_3": "Azul",
+            "game_4": "Wingspan",
+        },
+    )
+    assert resp_dup.status_code == 200
+    assert "Jedes Spiel muss anders heißen" in resp_dup.get_data(as_text=True)
+
+    # Games with spaces between words are allowed, leading/trailing whitespace trimmed
+    resp_ok = client.post(
+        f"/tournaments/{t.id}/games",
+        data={
+            "wizard": "1",
+            "game_1": "  Stone Age  ",
+            "game_2": "Castle Combo",
+            "game_3": "Rajas of the Ganges",
+            "game_4": "Kingdomino",
+        },
+    )
+    assert resp_ok.status_code == 302
+    assert resp_ok.headers["Location"].endswith(f"/tournaments/{t.id}/players?wizard=1")
+
+    # Verify games were trimmed and stored in repo
+    updated_t = repo.get(t.id)
+    assert updated_t.get_game(1).name == "Stone Age"
+    assert updated_t.get_game(2).name == "Castle Combo"
+    assert updated_t.get_game(3).name == "Rajas of the Ganges"
+    assert updated_t.get_game(4).name == "Kingdomino"
+    assert updated_t.has_all_games() is True
+
+    # Now subroutes can be accessed
+    assert client.get(f"/tournaments/{t.id}").status_code == 200
+    assert client.get(f"/tournaments/{t.id}/players").status_code == 200
 

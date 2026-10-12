@@ -32,12 +32,21 @@
                         <div class="tournament-meta">
                             <span>👥 {{ t.players | length }} Spieler</span>
                             <span>🎯 {{ t.rounds | length }} Runden</span>
+                            {% if not t.has_all_games() %}
+                                <span style="color: #d97706; font-weight: 600;">⚠️ Spiele unvollständig</span>
+                            {% endif %}
                         </div>
 
                         <div class="tournament-card-actions">
-                            <a href="{{ url_for('main.tournament_dashboard', t_id=t.id) }}" class="btn btn-primary btn-sm">
-                                Turnier öffnen →
-                            </a>
+                            {% if t.has_all_games() %}
+                                <a href="{{ url_for('main.tournament_dashboard', t_id=t.id) }}" class="btn btn-primary btn-sm">
+                                    Turnier öffnen →
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('main.games', t_id=t.id, wizard=1) }}" class="btn btn-warning btn-sm">
+                                    Spiele erfassen →
+                                </a>
+                            {% endif %}
                             <form action="{{ url_for('main.delete_tournament', t_id=t.id) }}" method="POST" onsubmit="return confirm('Möchtest du das Turnier \'{{ t.name }}\' wirklich unwiderruflich löschen?');">
                                 <button type="submit" class="btn btn-sm btn-danger">Löschen</button>
                             </form>

@@ -35,6 +35,37 @@ def get_tournament_or_404(t_id: str) -> Tournament:
     return tournament
 
 
+@bp.before_request
+def enforce_games_configured():
+    if not request.endpoint or not request.endpoint.startswith("main."):
+        return None
+
+    excluded_endpoints = {
+        "main.index",
+        "main.create_tournament",
+        "main.delete_tournament",
+        "main.games",
+    }
+    if request.endpoint in excluded_endpoints:
+        return None
+
+    t_id = request.view_args.get("t_id") if request.view_args else None
+    if not t_id:
+        return None
+
+    repo = get_repo()
+    tournament = repo.get(t_id)
+    if not tournament:
+        return None
+
+    if not tournament.has_all_games():
+        flash(
+            "Die Spieleerfassung kann nicht verlassen werden, bevor alle 4 Spiele eingegeben sind. Jedes Spiel muss einen eindeutigen Namen haben.",
+            "warning",
+        )
+        return redirect(url_for("main.games", t_id=t_id, wizard=1))
+
+
 # --- Tournament Overview & Management ---
 
 @bp.route("/")
@@ -247,11 +278,21 @@ def games(t_id: str):
     is_wizard = request.args.get("wizard") == "1" or request.form.get("wizard") == "1"
 
     if request.method == "POST":
-        for r_num in (1, 2, 3, 4):
-            game_name = request.form.get(f"game_{r_num}", "").strip()
-            if game_name:
-                tournament.set_game(r_num, game_name)
-        repo.save(tournament)
+        submitted_games = {
+            r_num: request.form.get(f"game_{r_num}", "")
+            for r_num in (1, 2, 3, 4)
+        }
+        try:
+            tournament.set_all_games(submitted_games)
+            repo.save(tournament)
+        except ValueError as e:
+            flash(f"Fehler bei der Spieleingabe: {e}", "danger")
+            return render_template(
+                "games.html",
+                tournament=tournament,
+                wizard=is_wizard or (not tournament.has_all_games()),
+                form_data=submitted_games,
+            )
 
         if is_wizard:
             flash(
@@ -263,7 +304,11 @@ def games(t_id: str):
         flash("Spiele erfolgreich gespeichert.", "success")
         return redirect(url_for("main.tournament_dashboard", t_id=t_id))
 
-    return render_template("games.html", tournament=tournament, wizard=is_wizard)
+    return render_template(
+        "games.html",
+        tournament=tournament,
+        wizard=is_wizard or (not tournament.has_all_games()),
+    )
 
 
 @bp.route("/tournaments/<t_id>/rounds/generate", methods=["POST"])

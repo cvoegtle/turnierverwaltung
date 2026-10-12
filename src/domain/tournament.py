@@ -39,10 +39,10 @@ class Tournament:
     players: Dict[int, Player] = field(default_factory=dict)
     games: Dict[int, Game] = field(
         default_factory=lambda: {
-            1: Game(round_number=1, name="Spiel 1"),
-            2: Game(round_number=2, name="Spiel 2"),
-            3: Game(round_number=3, name="Spiel 3"),
-            4: Game(round_number=4, name="Spiel 4"),
+            1: Game(round_number=1, name=""),
+            2: Game(round_number=2, name=""),
+            3: Game(round_number=3, name=""),
+            4: Game(round_number=4, name=""),
         }
     )
     rounds: Dict[int, List[Table]] = field(default_factory=dict)
@@ -98,10 +98,54 @@ class Tournament:
     def set_game(self, round_num: int, name: str) -> None:
         if round_num not in (1, 2, 3, 4):
             raise ValueError(f"Ungültige Rundennummer: {round_num}. Erlaubt sind 1 bis 4.")
-        self.games[round_num] = Game(round_number=round_num, name=name.strip())
+        clean_name = name.strip()
+        if not clean_name:
+            raise ValueError("Spielname darf nicht leer sein oder nur aus Leerzeichen bestehen.")
+        for r, g in self.games.items():
+            if r != round_num and g.name.strip() and g.name.strip().casefold() == clean_name.casefold():
+                raise ValueError(
+                    f"Jedes Spiel muss anders heißen. '{clean_name}' wird bereits für Runde {r} verwendet."
+                )
+        self.games[round_num] = Game(round_number=round_num, name=clean_name)
+
+    def set_all_games(self, game_names: Dict[int, str]) -> None:
+        """Sets and validates all 4 games at once, ensuring no empty/whitespace names and unique names."""
+        if set(game_names.keys()) != {1, 2, 3, 4}:
+            raise ValueError("Es müssen genau 4 Spiele für die Runden 1 bis 4 angegeben werden.")
+        cleaned: Dict[int, str] = {}
+        for r_num in (1, 2, 3, 4):
+            val = (game_names.get(r_num) or "").strip()
+            if not val:
+                raise ValueError(f"Spiel für Runde {r_num} darf nicht leer sein oder nur aus Leerzeichen bestehen.")
+            cleaned[r_num] = val
+
+        seen: Dict[str, int] = {}
+        for r_num, clean_name in cleaned.items():
+            norm = clean_name.casefold()
+            if norm in seen:
+                raise ValueError(
+                    f"Jedes Spiel muss anders heißen. '{clean_name}' (Runde {r_num}) ist doppelt zu Runde {seen[norm]}."
+                )
+            seen[norm] = r_num
+
+        for r_num, clean_name in cleaned.items():
+            self.games[r_num] = Game(round_number=r_num, name=clean_name)
+
+    def has_all_games(self) -> bool:
+        """Checks if all 4 games are entered, non-empty, and pairwise distinct."""
+        names = []
+        for r_num in (1, 2, 3, 4):
+            g = self.games.get(r_num)
+            if not g:
+                return False
+            clean = g.name.strip()
+            if not clean:
+                return False
+            names.append(clean.casefold())
+        return len(names) == 4 and len(set(names)) == 4
 
     def get_game(self, round_num: int) -> Game:
-        return self.games.get(round_num, Game(round_number=round_num, name=f"Spiel {round_num}"))
+        return self.games.get(round_num, Game(round_number=round_num, name=""))
 
     # Seating allocation
     def generate_seating_plan(self, seed: Optional[int] = None, iterations: int = 25000) -> None:
@@ -236,7 +280,7 @@ class Tournament:
         # Ensure all 4 games exist
         for r_num in (1, 2, 3, 4):
             if r_num not in tournament.games:
-                tournament.games[r_num] = Game(round_number=r_num, name=f"Spiel {r_num}")
+                tournament.games[r_num] = Game(round_number=r_num, name="")
 
         # Load rounds
         tournament.rounds.clear()
