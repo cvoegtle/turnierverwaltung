@@ -219,10 +219,10 @@ def test_complete_tournament_flow(client):
     resp = client.get(f"/tournaments/{t.id}/rounds/1")
     assert resp.status_code == 200
     html = resp.get_data(as_text=True)
-    assert "Tisch 1" in html
-    assert "Tisch 2" in html
+    assert "Tisch A" in html
+    assert "Tisch B" in html
 
-    # 6. Submit result for Table 1
+    # 6. Submit result for Table 1 (Tisch A)
     updated_t = repo.get(t.id)
     t1 = updated_t.rounds[1][0]
     p_nums = t1.player_numbers
@@ -243,7 +243,7 @@ def test_complete_tournament_flow(client):
         follow_redirects=True,
     )
     assert resp.status_code == 200
-    assert "Ergebnisse für Tisch 1 (Runde 1) gespeichert" in resp.get_data(as_text=True)
+    assert "Ergebnisse für Tisch A (Runde 1) gespeichert" in resp.get_data(as_text=True)
 
     # 7. Check standings
     resp = client.get(f"/tournaments/{t.id}/standings")

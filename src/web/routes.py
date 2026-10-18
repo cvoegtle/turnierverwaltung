@@ -373,7 +373,7 @@ def submit_table_result(t_id: str, round_num: int, table_num: int):
 
         tournament.record_table_result(round_num, table_num, placements_data)
         repo.save(tournament)
-        flash(f"Ergebnisse für Tisch {table_num} (Runde {round_num}) gespeichert.", "success")
+        flash(f"Ergebnisse für Tisch {table.table_label} (Runde {round_num}) gespeichert.", "success")
     except (ValueError, TypeError) as e:
         flash(f"Fehler bei der Ergebniseingabe: {e}", "danger")
 
@@ -384,9 +384,11 @@ def submit_table_result(t_id: str, round_num: int, table_num: int):
 def clear_table_result(t_id: str, round_num: int, table_num: int):
     repo = get_repo()
     tournament = get_tournament_or_404(t_id)
+    table = next((t for t in tournament.rounds.get(round_num, []) if t.table_number == table_num), None)
+    t_label = table.table_label if table else str(table_num)
     tournament.clear_table_result(round_num, table_num)
     repo.save(tournament)
-    flash(f"Ergebnis für Tisch {table_num} (Runde {round_num}) zurückgesetzt.", "info")
+    flash(f"Ergebnis für Tisch {t_label} (Runde {round_num}) zurückgesetzt.", "info")
     return redirect(url_for("main.round_detail", t_id=t_id, round_num=round_num))
 
 

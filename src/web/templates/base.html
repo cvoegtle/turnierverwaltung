@@ -13,7 +13,6 @@
             <a href="{{ url_for('main.index') }}" class="brand">
                 <span class="brand-icon">🎲</span>
                 <span class="brand-name">Turnierverwaltung</span>
-                <span class="brand-sub">Spieleclub Paderborn</span>
             </a>
             <nav class="main-nav">
                 {% if tournament %}
@@ -25,7 +24,7 @@
                         <a href="{{ url_for('main.players', t_id=tournament.id) }}" class="nav-link {% if request.endpoint == 'main.players' %}active{% endif %}">Spieler</a>
                         <a href="{{ url_for('main.games', t_id=tournament.id) }}" class="nav-link {% if request.endpoint == 'main.games' %}active{% endif %}">Spiele</a>
                         <div class="nav-dropdown">
-                            <span class="nav-link {% if request.endpoint == 'main.round_detail' %}active{% endif %}">Runden ▾</span>
+                            <span class="nav-link {% if request.endpoint == 'main.round_detail' %}active{% endif %}">Runden&nbsp;▾</span>
                             <div class="dropdown-content">
                                 <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=1) }}">Runde 1</a>
                                 <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=2) }}">Runde 2</a>
@@ -33,12 +32,12 @@
                                 <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=4) }}">Runde 4</a>
                             </div>
                         </div>
-                        <a href="{{ url_for('main.standings', t_id=tournament.id) }}" class="nav-link standings-link {% if request.endpoint == 'main.standings' %}active{% endif %}">🏆 Rangliste</a>
+                        <a href="{{ url_for('main.standings', t_id=tournament.id) }}" class="nav-link standings-link {% if request.endpoint == 'main.standings' %}active{% endif %}">🏆&nbsp;Rangliste</a>
                     {% else %}
-                        <a href="{{ url_for('main.games', t_id=tournament.id) }}" class="nav-link active">🎮 Spiele erfassen (Pflicht)</a>
+                        <a href="{{ url_for('main.games', t_id=tournament.id) }}" class="nav-link active">🎮&nbsp;Spiele erfassen (Pflicht)</a>
                     {% endif %}
                 {% endif %}
-                <a href="{{ url_for('main.index') }}" class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">📁 Alle Turniere</a>
+                <a href="{{ url_for('main.index') }}" class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">📁&nbsp;Alle&nbsp;Turniere</a>
             </nav>
         </div>
     </header>
@@ -64,7 +63,7 @@
 
     <footer class="app-footer">
         <div class="container footer-content">
-            <p>Spieleclub Paderborn e.V. – Turniersystem</p>
+            <p>Spieleclub Paderborn – Turniersystem</p>
             <div class="footer-links">
                 {% if tournament and tournament.has_all_games() %}
                     <a href="{{ url_for('main.export_csv', t_id=tournament.id) }}">CSV Export</a>

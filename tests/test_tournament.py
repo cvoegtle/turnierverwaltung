@@ -196,3 +196,27 @@ def test_serialization():
     assert reconstructed.get_game(1).name == "Siedler"
     assert len(reconstructed.rounds) == 4
     assert reconstructed.rounds[1][0].capacity in (3, 4)
+
+
+def test_alphabetical_table_labeling():
+    from src.domain.table import Table, table_number_to_label, table_label_to_number
+
+    assert table_number_to_label(1) == "A"
+    assert table_number_to_label(2) == "B"
+    assert table_number_to_label(3) == "C"
+    assert table_number_to_label(26) == "Z"
+    assert table_number_to_label(27) == "AA"
+
+    assert table_label_to_number("A") == 1
+    assert table_label_to_number("b") == 2
+    assert table_label_to_number("Z") == 26
+    assert table_label_to_number("AA") == 27
+
+    t = Table(table_number=1, round_number=1, capacity=4)
+    assert t.table_label == "A"
+    assert t.name == "Tisch A"
+    assert t.to_dict()["table_label"] == "A"
+
+    t2 = Table(table_number=2, round_number=1, capacity=4)
+    assert t2.table_label == "B"
+    assert t2.name == "Tisch B"

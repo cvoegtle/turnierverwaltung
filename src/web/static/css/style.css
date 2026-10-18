@@ -69,6 +69,8 @@ body {
     gap: 0.75rem;
     color: white;
     text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .brand-icon {
@@ -79,6 +81,7 @@ body {
     font-size: 1.25rem;
     font-weight: 700;
     letter-spacing: -0.02em;
+    white-space: nowrap;
 }
 
 .brand-sub {
@@ -93,6 +96,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-wrap: nowrap;
 }
 
 .nav-link {
@@ -104,6 +108,11 @@ body {
     font-weight: 500;
     transition: all 0.15s ease;
     cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
 }
 
 .nav-link:hover, .nav-link.active {
@@ -114,6 +123,8 @@ body {
 .nav-link.standings-link {
     background-color: #854d0e;
     color: #fef08a;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .nav-link.standings-link:hover {
@@ -124,6 +135,8 @@ body {
 .nav-dropdown {
     position: relative;
     display: inline-block;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .dropdown-content {
@@ -1103,7 +1116,9 @@ h4 {
     font-size: 0.85rem;
     font-weight: 600;
     margin-right: 0.5rem;
-    max-width: 260px;
+    max-width: 240px;
+    min-width: 0;
+    flex-shrink: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
