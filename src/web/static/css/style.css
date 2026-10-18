@@ -99,6 +99,24 @@ body {
     flex-wrap: nowrap;
 }
 
+.active-tournament-chip {
+    display: inline-flex;
+    align-items: center;
+    background: #334155;
+    color: #f1f5f9;
+    padding: 0.35rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: 0.75rem;
+    max-width: 380px;
+    min-width: 0;
+    flex-shrink: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .nav-link {
     color: #cbd5e1;
     text-decoration: none;
@@ -1104,24 +1122,6 @@ h4 {
 .card-highlight {
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
-}
-
-.active-tournament-chip {
-    display: inline-flex;
-    align-items: center;
-    background: #334155;
-    color: #f1f5f9;
-    padding: 0.35rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin-right: 0.5rem;
-    max-width: 240px;
-    min-width: 0;
-    flex-shrink: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .btn-link {
