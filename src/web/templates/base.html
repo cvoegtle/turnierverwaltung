@@ -26,10 +26,10 @@
                         <div class="nav-dropdown">
                             <span class="nav-link {% if request.endpoint == 'main.round_detail' %}active{% endif %}">Runden&nbsp;▾</span>
                             <div class="dropdown-content">
-                                <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=1) }}">Runde 1</a>
-                                <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=2) }}">Runde 2</a>
-                                <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=3) }}">Runde 3</a>
-                                <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=4) }}">Runde 4</a>
+                                <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=1) }}">{{ tournament.get_game(1).name or 'Runde 1' }}</a>
+                                <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=2) }}">{{ tournament.get_game(2).name or 'Runde 2' }}</a>
+                                <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=3) }}">{{ tournament.get_game(3).name or 'Runde 3' }}</a>
+                                <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=4) }}">{{ tournament.get_game(4).name or 'Runde 4' }}</a>
                             </div>
                         </div>
                         <a href="{{ url_for('main.standings', t_id=tournament.id) }}" class="nav-link standings-link {% if request.endpoint == 'main.standings' %}active{% endif %}">🏆&nbsp;Rangliste</a>

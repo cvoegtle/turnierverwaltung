@@ -67,7 +67,11 @@
         <div class="stat-value">{{ player_count }}</div>
         <div class="stat-label">Registrierte Spieler</div>
         <div class="stat-footer">
-            <a href="{{ url_for('main.players', t_id=tournament.id) }}">Spieler verwalten →</a>
+            {% if tournament.has_results() %}
+                <a href="{{ url_for('main.players', t_id=tournament.id) }}">🔒 Spielerliste (gesperrt) →</a>
+            {% else %}
+                <a href="{{ url_for('main.players', t_id=tournament.id) }}">Spieler verwalten →</a>
+            {% endif %}
         </div>
     </div>
 

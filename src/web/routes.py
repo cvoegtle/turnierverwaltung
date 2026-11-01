@@ -185,6 +185,9 @@ def add_player(t_id: str):
     repo = get_repo()
     tournament = get_tournament_or_404(t_id)
     is_wizard = request.form.get("wizard") == "1" or request.args.get("wizard") == "1"
+    if tournament.has_results():
+        flash("Die Spielerverwaltung ist gesperrt, da bereits Ergebnisse erfasst wurden.", "warning")
+        return redirect(url_for("main.players", t_id=t_id))
     try:
         number = int(request.form.get("number", 0))
         name = request.form.get("name", "").strip()
@@ -201,6 +204,9 @@ def bulk_add_players(t_id: str):
     repo = get_repo()
     tournament = get_tournament_or_404(t_id)
     is_wizard = request.form.get("wizard") == "1" or request.args.get("wizard") == "1"
+    if tournament.has_results():
+        flash("Die Spielerverwaltung ist gesperrt, da bereits Ergebnisse erfasst wurden.", "warning")
+        return redirect(url_for("main.players", t_id=t_id))
     raw_text = request.form.get("names", "")
     lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
 
@@ -245,6 +251,9 @@ def edit_player(t_id: str, number: int):
     repo = get_repo()
     tournament = get_tournament_or_404(t_id)
     is_wizard = request.form.get("wizard") == "1" or request.args.get("wizard") == "1"
+    if tournament.has_results():
+        flash("Die Spielerverwaltung ist gesperrt, da bereits Ergebnisse erfasst wurden.", "warning")
+        return redirect(url_for("main.players", t_id=t_id))
     new_name = request.form.get("name", "").strip()
     try:
         tournament.update_player(number, new_name)
@@ -260,6 +269,9 @@ def delete_player(t_id: str, number: int):
     repo = get_repo()
     tournament = get_tournament_or_404(t_id)
     is_wizard = request.form.get("wizard") == "1" or request.args.get("wizard") == "1"
+    if tournament.has_results():
+        flash("Die Spielerverwaltung ist gesperrt, da bereits Ergebnisse erfasst wurden.", "warning")
+        return redirect(url_for("main.players", t_id=t_id))
     try:
         tournament.remove_player(number)
         repo.save(tournament)

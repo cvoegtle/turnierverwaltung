@@ -8,7 +8,7 @@
         <div class="round-nav-tabs">
             {% for r in (1, 2, 3, 4) %}
             <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=r) }}" class="tab-link {% if r == round_num %}active{% endif %}">
-                Runde {{ r }}
+                {{ tournament.get_game(r).name or ('Runde ' ~ r) }}
             </a>
             {% endfor %}
         </div>

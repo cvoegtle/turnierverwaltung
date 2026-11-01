@@ -61,8 +61,20 @@ class Tournament:
             pass
         return self.date
 
+    def has_results(self) -> bool:
+        """Checks if any table results or player scores have been recorded."""
+        for r_tables in self.rounds.values():
+            for t in r_tables:
+                if t.results:
+                    return True
+        return any(bool(p.scores) for p in self.players.values())
+
     # Player management
     def add_player(self, number: int, name: str) -> Player:
+        if self.has_results():
+            raise ValueError(
+                "Es wurden bereits Spielergebnisse erfasst. Die Spielerverwaltung ist gesperrt."
+            )
         if number in self.players:
             raise ValueError(f"Spielernummer {number} existiert bereits.")
         clean_name = name.strip()
@@ -73,6 +85,10 @@ class Tournament:
         return player
 
     def update_player(self, number: int, new_name: str) -> None:
+        if self.has_results():
+            raise ValueError(
+                "Es wurden bereits Spielergebnisse erfasst. Die Spielerverwaltung ist gesperrt."
+            )
         if number not in self.players:
             raise ValueError(f"Spieler mit Nummer {number} nicht gefunden.")
         clean_name = new_name.strip()
@@ -81,15 +97,12 @@ class Tournament:
         self.players[number].name = clean_name
 
     def remove_player(self, number: int) -> None:
+        if self.has_results():
+            raise ValueError(
+                "Es wurden bereits Spielergebnisse erfasst. Die Spielerverwaltung ist gesperrt."
+            )
         if number not in self.players:
             raise ValueError(f"Spieler mit Nummer {number} nicht gefunden.")
-        # Check if rounds already started with results
-        for r_tables in self.rounds.values():
-            for t in r_tables:
-                if any(r.player_number == number for r in t.results):
-                    raise ValueError(
-                        f"Spieler {number} hat bereits Spielergebnisse und kann nicht gelöscht werden."
-                    )
         del self.players[number]
 
     def get_player(self, number: int) -> Optional[Player]:
@@ -250,7 +263,7 @@ class Tournament:
         for r_num in (1, 2, 3, 4):
             game_name = self.get_game(r_num).name.strip()
             if game_name:
-                r_headers.append(f"Runde {r_num} ({game_name})")
+                r_headers.append(game_name)
             else:
                 r_headers.append(f"Runde {r_num}")
 

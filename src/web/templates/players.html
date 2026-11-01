@@ -3,7 +3,13 @@
 {% block title %}Spieler – {{ tournament.name }}{% endblock %}
 
 {% block content %}
-{% if wizard %}
+{% set is_locked = tournament.has_results() %}
+{% if is_locked %}
+<div class="flash-alert alert-warning" style="margin-bottom: 1.5rem;">
+    <span>🔒 <strong>Spielerseite gesperrt:</strong> Es wurden bereits Spielergebnisse erfasst. Spieler können nicht mehr hinzugefügt, bearbeitet oder gelöscht werden.</span>
+</div>
+{% endif %}
+{% if wizard and not is_locked %}
 <div class="wizard-header">
     <div class="wizard-stepper">
         <div class="wizard-step completed">
@@ -55,7 +61,7 @@
         </p>
     </div>
     <div>
-        {% if players | length >= 3 %}
+        {% if players | length >= 3 and not is_locked %}
         <form action="{{ url_for('main.generate_seating', t_id=tournament.id) }}" method="POST" onsubmit="return confirm('Tischverteilung mit der aktuellen Spielerliste generieren?');">
             <button type="submit" class="btn btn-primary">🎲 Tischverteilung generieren</button>
         </form>
@@ -64,7 +70,7 @@
 </div>
 {% endif %}
 
-<div class="two-col-layout">
+<div class="{% if not is_locked %}two-col-layout{% endif %}">
     <div class="main-column">
         <div class="card">
             <h2>Registrierte Spieler</h2>
@@ -76,7 +82,9 @@
                                 <th style="width: 80px;">Nr.</th>
                                 <th>Name</th>
                                 <th style="width: 140px;">Punkte bisher</th>
+                                {% if not is_locked %}
                                 <th style="width: 80px; text-align: right;">Aktionen</th>
+                                {% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -84,6 +92,9 @@
                             <tr>
                                 <td><span class="badge-number">#{{ p.number }}</span></td>
                                 <td>
+                                    {% if is_locked %}
+                                        <strong>{{ p.name }}</strong>
+                                    {% else %}
                                     <form id="edit-form-{{ p.number }}" action="{{ url_for('main.edit_player', t_id=tournament.id, number=p.number) }}" method="POST" class="inline-edit-form">
                                         {% if wizard %}<input type="hidden" name="wizard" value="1">{% endif %}
                                         <input type="text" name="name" value="{{ p.name }}" class="form-input-sm" required>
@@ -95,8 +106,10 @@
                                             </svg>
                                         </button>
                                     </form>
+                                    {% endif %}
                                 </td>
                                 <td><strong>{{ "%.2f"|format(p.total_score) }}</strong> Pkt.</td>
+                                {% if not is_locked %}
                                 <td style="text-align: right;">
                                     <form action="{{ url_for('main.delete_player', t_id=tournament.id, number=p.number) }}" method="POST" style="display: inline;" onsubmit="return confirm('Spieler #{{ p.number }} wirklich löschen?');">
                                         {% if wizard %}<input type="hidden" name="wizard" value="1">{% endif %}
@@ -110,6 +123,7 @@
                                         </button>
                                     </form>
                                 </td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -123,6 +137,7 @@
         </div>
     </div>
 
+    {% if not is_locked %}
     <div class="side-column">
         <div class="card">
             <h3>Einzelnen Spieler hinzufügen</h3>
@@ -152,6 +167,7 @@
             </form>
         </div>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 

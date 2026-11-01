@@ -245,6 +245,25 @@ def test_complete_tournament_flow(client):
     assert resp.status_code == 200
     assert "Ergebnisse für Tisch A (Runde 1) gespeichert" in resp.get_data(as_text=True)
 
+    # Players page is now locked once results have been recorded
+    players_locked_resp = client.get(f"/tournaments/{t.id}/players")
+    assert players_locked_resp.status_code == 200
+    players_locked_html = players_locked_resp.get_data(as_text=True)
+    assert "Spielerseite gesperrt" in players_locked_html
+    assert "Einzelnen Spieler hinzufügen" not in players_locked_html
+    assert "btn-icon-delete" not in players_locked_html
+    assert "btn-icon-cloud" not in players_locked_html
+
+    # Attempting to add/edit/delete players via POST is blocked
+    for post_url, post_data in [
+        (f"/tournaments/{t.id}/players/add", {"number": "99", "name": "New"}),
+        (f"/tournaments/{t.id}/players/bulk", {"names": "New1\nNew2"}),
+        (f"/tournaments/{t.id}/players/1/edit", {"name": "Changed"}),
+        (f"/tournaments/{t.id}/players/1/delete", {}),
+    ]:
+        block_resp = client.post(post_url, data=post_data, follow_redirects=True)
+        assert "Die Spielerverwaltung ist gesperrt" in block_resp.get_data(as_text=True)
+
     # 7. Check standings
     resp = client.get(f"/tournaments/{t.id}/standings")
     assert resp.status_code == 200

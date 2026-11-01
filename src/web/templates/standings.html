@@ -44,20 +44,16 @@
                     <th style="width: 80px;">Nr.</th>
                     <th>Spieler</th>
                     <th style="text-align: right; width: 110px;">
-                        Runde 1
-                        <div class="sub-th">{{ tournament.get_game(1).name }}</div>
+                        {{ tournament.get_game(1).name or 'Runde 1' }}
                     </th>
                     <th style="text-align: right; width: 110px;">
-                        Runde 2
-                        <div class="sub-th">{{ tournament.get_game(2).name }}</div>
+                        {{ tournament.get_game(2).name or 'Runde 2' }}
                     </th>
                     <th style="text-align: right; width: 110px;">
-                        Runde 3
-                        <div class="sub-th">{{ tournament.get_game(3).name }}</div>
+                        {{ tournament.get_game(3).name or 'Runde 3' }}
                     </th>
                     <th style="text-align: right; width: 110px;">
-                        Runde 4
-                        <div class="sub-th">{{ tournament.get_game(4).name }}</div>
+                        {{ tournament.get_game(4).name or 'Runde 4' }}
                     </th>
                     <th style="text-align: right; width: 140px;" class="total-col">
                         Gesamtpunkte

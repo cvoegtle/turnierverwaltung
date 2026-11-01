@@ -122,14 +122,24 @@ def test_tournament_lifecycle_and_standings():
     t.record_table_result(1, table1.table_number, placements_data)
 
     assert table1.is_completed
+    assert t.has_results() is True
     assert t.get_player(p_nums[0]).scores[1] == 4.0
     assert t.get_player(p_nums[1]).scores[1] == 4.0
     assert t.get_player(p_nums[2]).scores[1] == 2.0
     assert t.get_player(p_nums[3]).scores[1] == 1.0
 
+    # Once results are recorded, player management is locked
+    with pytest.raises(ValueError, match="gesperrt"):
+        t.add_player(99, "Latecomer")
+    with pytest.raises(ValueError, match="gesperrt"):
+        t.update_player(1, "Renamed")
+    with pytest.raises(ValueError, match="gesperrt"):
+        t.remove_player(8)
+
     # Test clearing table results
     t.clear_table_result(1, table1.table_number)
     assert not table1.is_completed
+    assert t.has_results() is False
     assert 1 not in t.get_player(p_nums[0]).scores
 
 
