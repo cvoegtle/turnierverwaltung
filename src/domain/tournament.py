@@ -239,6 +239,43 @@ class Tournament:
 
         return standings
 
+    def to_mediawiki_table(self) -> str:
+        """Generates a MediaWiki table (wikitable) of the current tournament standings."""
+        standings_list = self.get_standings()
+        caption = self.name
+        if self.date:
+            caption = f"{self.name} ({self.formatted_date})"
+
+        r_headers = []
+        for r_num in (1, 2, 3, 4):
+            game_name = self.get_game(r_num).name.strip()
+            if game_name:
+                r_headers.append(f"Runde {r_num} ({game_name})")
+            else:
+                r_headers.append(f"Runde {r_num}")
+
+        lines = [
+            '{| class="wikitable sortable"',
+            f"|+ {caption}",
+            "|-",
+            f"! Rang !! Nr. !! Name !! {r_headers[0]} !! {r_headers[1]} !! {r_headers[2]} !! {r_headers[3]} !! Gesamtpunkte",
+        ]
+
+        for entry in standings_list:
+            p = entry.player
+            r1 = f"{p.scores.get(1, 0.0):.2f}"
+            r2 = f"{p.scores.get(2, 0.0):.2f}"
+            r3 = f"{p.scores.get(3, 0.0):.2f}"
+            r4 = f"{p.scores.get(4, 0.0):.2f}"
+            total = f"'''{entry.total_score:.2f}'''"
+            lines.append("|-")
+            lines.append(
+                f"| {entry.rank} || {p.number} || {p.name} || {r1} || {r2} || {r3} || {r4} || {total}"
+            )
+
+        lines.append("|}")
+        return "\n".join(lines) + "\n"
+
     # Serialization
     def to_dict(self) -> Dict[str, Any]:
         return {

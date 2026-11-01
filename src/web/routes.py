@@ -1,9 +1,7 @@
 """HTTP routes for tournament management UI."""
 
 from __future__ import annotations
-import csv
 import datetime
-import io
 import json
 from typing import List, Optional, Tuple
 from flask import (
@@ -415,33 +413,13 @@ def export_json(t_id: str):
     )
 
 
-@bp.route("/tournaments/<t_id>/export/csv")
-def export_csv(t_id: str):
+@bp.route("/tournaments/<t_id>/export/mediawiki")
+def export_mediawiki(t_id: str):
     tournament = get_tournament_or_404(t_id)
-    standings_list = tournament.get_standings()
-
-    output = io.StringIO()
-    writer = csv.writer(output, delimiter=";")
-    writer.writerow(["Rang", "Nummer", "Name", "Runde 1", "Runde 2", "Runde 3", "Runde 4", "Gesamtpunkte"])
-
-    for entry in standings_list:
-        p = entry.player
-        writer.writerow([
-            entry.rank,
-            p.number,
-            p.name,
-            p.scores.get(1, 0.0),
-            p.scores.get(2, 0.0),
-            p.scores.get(3, 0.0),
-            p.scores.get(4, 0.0),
-            entry.total_score,
-        ])
-
-    filename = f"turnier_{tournament.id}_rangliste.csv"
+    wiki_text = tournament.to_mediawiki_table()
     return Response(
-        output.getvalue().encode("utf-8-sig"),
-        mimetype="text/csv",
-        headers={"Content-Disposition": f"attachment;filename={filename}"},
+        wiki_text,
+        mimetype="text/plain; charset=utf-8",
     )
 
 

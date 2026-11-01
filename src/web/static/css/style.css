@@ -1032,28 +1032,120 @@ h4 {
 }
 
 /* Print / Projector Styles */
+@page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+}
+
 @media print {
-    .app-header, .app-footer, .action-buttons, .no-print, .danger-zone, .scoring-rules-banner {
+    .app-header, .app-footer, .action-buttons, .no-print, .danger-zone, .scoring-rules-banner, .round-nav-tabs {
         display: none !important;
     }
     body {
         background: white !important;
         color: black !important;
+        font-size: 11pt !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     .main-content {
         padding: 0 !important;
+        margin: 0 !important;
+    }
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     .card {
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+    }
+    .page-header {
+        margin-bottom: 0.35rem !important;
+        padding: 0 !important;
+    }
+    .page-header h1 {
+        font-size: 1.15rem !important;
+        margin: 0 0 0.15rem 0 !important;
+        line-height: 1.2 !important;
+    }
+    .page-header .subtitle {
+        font-size: 0.75rem !important;
+        margin: 0 !important;
+        color: #475569 !important;
+    }
+    .table-responsive {
+        overflow: visible !important;
+    }
+    .data-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 0.8rem !important;
     }
     .data-table th, .data-table td {
-        border-color: #666 !important;
-        padding: 0.5rem !important;
+        border: 1px solid #94a3b8 !important;
+        padding: 0.22rem 0.4rem !important;
+        line-height: 1.2 !important;
+    }
+    .data-table th {
+        background-color: #f1f5f9 !important;
+        font-size: 0.76rem !important;
+        padding: 0.25rem 0.4rem !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .sub-th {
+        font-size: 0.65rem !important;
+        color: #475569 !important;
+        line-height: 1.1 !important;
     }
     .standings-table {
-        font-size: 1rem;
+        font-size: 0.8rem !important;
+    }
+    .standings-table .score-cell {
+        font-size: 0.8rem !important;
+    }
+    .standings-table .total-score-cell {
+        font-size: 0.82rem !important;
+        background-color: #f1f5f9 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .rank-pill {
+        padding: 0.08rem 0.35rem !important;
+        font-size: 0.75rem !important;
+        line-height: 1 !important;
+        display: inline-block !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .badge-number {
+        padding: 0.05rem 0.25rem !important;
+        font-size: 0.72rem !important;
+        background: transparent !important;
+        border: 1px solid #cbd5e1 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .rank-first, .rank-second, .rank-third {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .data-table tr {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    thead {
+        display: table-header-group;
+    }
+    .table-card {
+        page-break-inside: avoid;
+        break-inside: avoid;
     }
 }
 

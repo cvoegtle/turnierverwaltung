@@ -253,10 +253,16 @@ def test_complete_tournament_flow(client):
     assert "4.00" in standings_html
 
     # 8. Check exports
+    wiki_resp = client.get(f"/tournaments/{t.id}/export/mediawiki")
+    assert wiki_resp.status_code == 200
+    assert wiki_resp.mimetype == "text/plain"
+    wiki_text = wiki_resp.get_data(as_text=True)
+    assert '{| class="wikitable sortable"' in wiki_text
+    assert "Gesamtpunkte" in wiki_text
+    assert "|}" in wiki_text
+
     csv_resp = client.get(f"/tournaments/{t.id}/export/csv")
-    assert csv_resp.status_code == 200
-    assert csv_resp.mimetype == "text/csv"
-    assert "Gesamtpunkte" in csv_resp.get_data(as_text=True)
+    assert csv_resp.status_code == 404
 
     json_resp = client.get(f"/tournaments/{t.id}/export/json")
     assert json_resp.status_code == 200
@@ -388,7 +394,7 @@ def test_game_recording_mandatory_and_validation(client):
         f"/tournaments/{t.id}/players",
         f"/tournaments/{t.id}/rounds/1",
         f"/tournaments/{t.id}/standings",
-        f"/tournaments/{t.id}/export/csv",
+        f"/tournaments/{t.id}/export/mediawiki",
         f"/tournaments/{t.id}/export/json",
     ]:
         resp = client.get(route)

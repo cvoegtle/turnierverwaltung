@@ -66,7 +66,7 @@
             <p>Spieleclub Paderborn – Turniersystem</p>
             <div class="footer-links">
                 {% if tournament and tournament.has_all_games() %}
-                    <a href="{{ url_for('main.export_csv', t_id=tournament.id) }}">CSV Export</a>
+                    <a href="{{ url_for('main.export_mediawiki', t_id=tournament.id) }}">MediaWiki Export</a>
                     <a href="{{ url_for('main.export_json', t_id=tournament.id) }}">JSON Export</a>
                 {% endif %}
                 <a href="{{ url_for('main.index') }}">Turnierübersicht</a>

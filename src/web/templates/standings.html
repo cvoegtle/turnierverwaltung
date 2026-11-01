@@ -13,9 +13,25 @@
     </div>
     <div class="action-buttons no-print">
         <button type="button" class="btn btn-outline" onclick="window.print();">🖨️ Drucken / Beamer</button>
-        <a href="{{ url_for('main.export_csv', t_id=tournament.id) }}" class="btn btn-outline">📥 CSV</a>
+        <button type="button" class="btn btn-outline" onclick="toggleMediaWikiBox();">📋 MediaWiki</button>
         <a href="{{ url_for('main.export_json', t_id=tournament.id) }}" class="btn btn-outline">📥 JSON</a>
     </div>
+</div>
+
+<div id="mediawiki-export-box" class="card no-print" style="display: none; margin-bottom: 1.5rem; background: #f8fafc;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+            <h3 style="margin-bottom: 0.15rem;">📋 MediaWiki-Tabelle kopieren</h3>
+            <p class="subtitle" style="margin-top: 0;">Bereit zum direkten Einfügen in ein MediaWiki (Wikitext-Format).</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button type="button" id="copy-mediawiki-btn" class="btn btn-primary btn-sm" onclick="copyMediaWikiTable();">
+                📋 In Zwischenablage kopieren
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="toggleMediaWikiBox();">Schließen</button>
+        </div>
+    </div>
+    <textarea id="mediawiki-table-source" class="form-input" rows="10" readonly style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.85rem; width: 100%; white-space: pre; overflow-x: auto;">{{ tournament.to_mediawiki_table() }}</textarea>
 </div>
 
 <div class="card standings-card">
@@ -103,4 +119,38 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleMediaWikiBox() {
+    const box = document.getElementById('mediawiki-export-box');
+    if (!box) return;
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function copyMediaWikiTable() {
+    const textarea = document.getElementById('mediawiki-table-source');
+    const btn = document.getElementById('copy-mediawiki-btn');
+    if (!textarea) return;
+    textarea.select();
+    textarea.setSelectionRange(0, 99999);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textarea.value).then(() => {
+            if (btn) {
+                const orig = btn.innerText;
+                btn.innerText = '✓ Kopiert!';
+                setTimeout(() => { btn.innerText = orig; }, 2000);
+            }
+        });
+    } else {
+        document.execCommand('copy');
+        if (btn) {
+            const orig = btn.innerText;
+            btn.innerText = '✓ Kopiert!';
+            setTimeout(() => { btn.innerText = orig; }, 2000);
+        }
+    }
+}
+</script>
 {% endblock %}
