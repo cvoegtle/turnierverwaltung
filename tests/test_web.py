@@ -271,7 +271,7 @@ def test_complete_tournament_flow(client):
     assert resp.status_code == 200
     standings_html = resp.get_data(as_text=True)
     assert "Turnierwertung: Meisterschaft 2026" in standings_html
-    assert "4.00" in standings_html
+    assert "4,00" in standings_html
 
     # 8. Check exports
     wiki_resp = client.get(f"/tournaments/{t.id}/export/mediawiki")
@@ -280,6 +280,7 @@ def test_complete_tournament_flow(client):
     wiki_text = wiki_resp.get_data(as_text=True)
     assert '{| class="wikitable sortable"' in wiki_text
     assert "Gesamtpunkte" in wiki_text
+    assert "4,00" in wiki_text
     assert "|}" in wiki_text
 
     csv_resp = client.get(f"/tournaments/{t.id}/export/csv")

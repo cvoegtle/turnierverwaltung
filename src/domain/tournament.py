@@ -281,13 +281,16 @@ class Tournament:
             f"! Rang !! Nr. !! Name !! {r_headers[0]} !! {r_headers[1]} !! {r_headers[2]} !! {r_headers[3]} !! Gesamtpunkte",
         ]
 
+        def fmt_de(val: float) -> str:
+            return f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
         for entry in standings_list:
             p = entry.player
-            r1 = f"{p.scores.get(1, 0.0):.2f}"
-            r2 = f"{p.scores.get(2, 0.0):.2f}"
-            r3 = f"{p.scores.get(3, 0.0):.2f}"
-            r4 = f"{p.scores.get(4, 0.0):.2f}"
-            total = f"'''{entry.total_score:.2f}'''"
+            r1 = fmt_de(p.scores.get(1, 0.0))
+            r2 = fmt_de(p.scores.get(2, 0.0))
+            r3 = fmt_de(p.scores.get(3, 0.0))
+            r4 = fmt_de(p.scores.get(4, 0.0))
+            total = f"'''{fmt_de(entry.total_score)}'''"
             lines.append("|-")
             lines.append(
                 f"| {entry.rank} || {p.number} || {p.name} || {r1} || {r2} || {r3} || {r4} || {total}"

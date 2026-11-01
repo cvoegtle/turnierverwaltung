@@ -90,7 +90,7 @@
                     <tr>
                         <td><span class="rank-badge">Platz {{ res.rank }}</span></td>
                         <td>#{{ res.player_number }} {{ p.name if p else '' }}</td>
-                        <td><strong>{{ "%.2f"|format(res.points_awarded) }}</strong> Pkt.</td>
+                        <td><strong>{{ res.points_awarded|german_number }}</strong> Pkt.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

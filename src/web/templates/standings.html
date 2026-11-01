@@ -40,22 +40,22 @@
         <table class="data-table standings-table">
             <thead>
                 <tr>
-                    <th style="width: 90px; text-align: center;">Rang</th>
-                    <th style="width: 80px;">Nr.</th>
-                    <th>Spieler</th>
-                    <th style="text-align: right; width: 110px;">
+                    <th style="width: 65px; text-align: center;">Rang</th>
+                    <th style="width: 50px;">Nr.</th>
+                    <th style="width: 22%;">Spieler</th>
+                    <th style="text-align: right; width: 14%;">
                         {{ tournament.get_game(1).name or 'Runde 1' }}
                     </th>
-                    <th style="text-align: right; width: 110px;">
+                    <th style="text-align: right; width: 14%;">
                         {{ tournament.get_game(2).name or 'Runde 2' }}
                     </th>
-                    <th style="text-align: right; width: 110px;">
+                    <th style="text-align: right; width: 14%;">
                         {{ tournament.get_game(3).name or 'Runde 3' }}
                     </th>
-                    <th style="text-align: right; width: 110px;">
+                    <th style="text-align: right; width: 14%;">
                         {{ tournament.get_game(4).name or 'Runde 4' }}
                     </th>
-                    <th style="text-align: right; width: 140px;" class="total-col">
+                    <th style="text-align: right; width: 115px;" class="total-col">
                         Gesamtpunkte
                     </th>
                 </tr>
@@ -75,34 +75,34 @@
                     </td>
                     <td class="score-cell">
                         {% if p.get_score(1) is not none %}
-                            {{ "%.2f"|format(p.get_score(1)) }}
+                            {{ p.get_score(1)|german_number }}
                         {% else %}
                             <span class="text-muted">–</span>
                         {% endif %}
                     </td>
                     <td class="score-cell">
                         {% if p.get_score(2) is not none %}
-                            {{ "%.2f"|format(p.get_score(2)) }}
+                            {{ p.get_score(2)|german_number }}
                         {% else %}
                             <span class="text-muted">–</span>
                         {% endif %}
                     </td>
                     <td class="score-cell">
                         {% if p.get_score(3) is not none %}
-                            {{ "%.2f"|format(p.get_score(3)) }}
+                            {{ p.get_score(3)|german_number }}
                         {% else %}
                             <span class="text-muted">–</span>
                         {% endif %}
                     </td>
                     <td class="score-cell">
                         {% if p.get_score(4) is not none %}
-                            {{ "%.2f"|format(p.get_score(4)) }}
+                            {{ p.get_score(4)|german_number }}
                         {% else %}
                             <span class="text-muted">–</span>
                         {% endif %}
                     </td>
                     <td class="score-cell total-score-cell">
-                        <strong>{{ "%.2f"|format(p.total_score) }}</strong>
+                        <strong>{{ p.total_score|german_number }}</strong>
                     </td>
                 </tr>
                 {% endfor %}

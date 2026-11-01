@@ -11,7 +11,7 @@ set -euo pipefail
 
 REGION="${GCP_REGION:-europe-west1}"
 SERVICE_NAME="${GCP_SERVICE_NAME:-turnierverwaltung}"
-PROJECT_ID="${1:-$(gcloud config get-value project 2>/dev/null || echo '')}"
+PROJECT_ID="spieleclub-turnier-verwaltung"
 
 if [ -z "$PROJECT_ID" ]; then
     echo "❌ Fehler: Kein GCP-Projekt gefunden."

@@ -45,6 +45,13 @@ def create_app(
 
     app.jinja_env.filters["german_date"] = format_german_date
 
+    def format_german_number(val: Optional[float], decimals: int = 2) -> str:
+        if val is None:
+            return ""
+        return f"{float(val):,.{decimals}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    app.jinja_env.filters["german_number"] = format_german_number
+
     # Register routes
     from src.web.routes import bp as main_bp
     app.register_blueprint(main_bp)

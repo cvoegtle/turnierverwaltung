@@ -151,7 +151,7 @@
                             {% endif %}
                         </td>
                         {% endfor %}
-                        <td style="text-align: right; white-space: nowrap;"><strong>{{ "%.2f"|format(p.total_score) }}</strong> Pkt.</td>
+                        <td style="text-align: right; white-space: nowrap;"><strong>{{ p.total_score|german_number }}</strong> Pkt.</td>
                         {% if not is_locked %}
                         <td style="text-align: right;">
                             <form action="{{ url_for('main.delete_player', t_id=tournament.id, number=p.number) }}" method="POST" style="display: inline;" onsubmit="return confirm('Spieler #{{ p.number }} wirklich löschen?');">

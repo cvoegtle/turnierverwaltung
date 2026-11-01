@@ -378,7 +378,7 @@ def submit_table_result(t_id: str, round_num: int, table_num: int):
                 raise ValueError(f"Bitte Platzierung für Spieler #{p_num} angeben.")
 
             rank = int(rank_str)
-            raw_score = float(score_str) if score_str else None
+            raw_score = float(score_str.replace(",", ".")) if score_str else None
             placements_data.append((p_num, rank, raw_score))
 
         tournament.record_table_result(round_num, table_num, placements_data)
