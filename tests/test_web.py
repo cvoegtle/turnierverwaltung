@@ -250,6 +250,8 @@ def test_complete_tournament_flow(client):
     assert players_locked_resp.status_code == 200
     players_locked_html = players_locked_resp.get_data(as_text=True)
     assert "Spielerseite gesperrt" in players_locked_html
+    assert "Tisch A" in players_locked_html
+    assert "Tisch B" in players_locked_html
     assert "Einzelnen Spieler hinzufügen" not in players_locked_html
     assert "btn-icon-delete" not in players_locked_html
     assert "btn-icon-cloud" not in players_locked_html

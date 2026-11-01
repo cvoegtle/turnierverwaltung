@@ -108,6 +108,13 @@ class Tournament:
     def get_player(self, number: int) -> Optional[Player]:
         return self.players.get(number)
 
+    def get_player_table(self, player_number: int, round_num: int) -> Optional[Table]:
+        """Returns the Table where the given player is seated in round_num, or None."""
+        for table in self.rounds.get(round_num, []):
+            if any(seat.player_number == player_number for seat in table.seats):
+                return table
+        return None
+
     def set_game(self, round_num: int, name: str) -> None:
         if round_num not in (1, 2, 3, 4):
             raise ValueError(f"Ungültige Rundennummer: {round_num}. Erlaubt sind 1 bis 4.")

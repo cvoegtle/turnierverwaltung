@@ -43,7 +43,7 @@
 {% if tables %}
 <div class="tables-grid">
     {% for table in tables %}
-    <div class="table-card {% if table.is_completed %}table-completed{% endif %}">
+    <div id="table-{{ table.table_number }}" class="table-card {% if table.is_completed %}table-completed{% endif %}">
         <div class="table-card-header">
             <div>
                 <h3>{{ table.name }}</h3>

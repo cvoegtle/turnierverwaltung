@@ -70,103 +70,112 @@
 </div>
 {% endif %}
 
-<div class="{% if not is_locked %}two-col-layout{% endif %}">
-    <div class="main-column">
-        <div class="card">
-            <h2>Registrierte Spieler</h2>
-            {% if players %}
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 80px;">Nr.</th>
-                                <th>Name</th>
-                                <th style="width: 140px;">Punkte bisher</th>
-                                {% if not is_locked %}
-                                <th style="width: 80px; text-align: right;">Aktionen</th>
-                                {% endif %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for p in players %}
-                            <tr>
-                                <td><span class="badge-number">#{{ p.number }}</span></td>
-                                <td>
-                                    {% if is_locked %}
-                                        <strong>{{ p.name }}</strong>
-                                    {% else %}
-                                    <form id="edit-form-{{ p.number }}" action="{{ url_for('main.edit_player', t_id=tournament.id, number=p.number) }}" method="POST" class="inline-edit-form">
-                                        {% if wizard %}<input type="hidden" name="wizard" value="1">{% endif %}
-                                        <input type="text" name="name" value="{{ p.name }}" class="form-input-sm" required>
-                                        <button type="submit" class="btn-icon-cloud" title="In der Cloud speichern" aria-label="In der Cloud speichern">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
-                                                <path d="M12 12v9"></path>
-                                                <path d="m16 16-4-4-4 4"></path>
-                                            </svg>
-                                        </button>
-                                    </form>
-                                    {% endif %}
-                                </td>
-                                <td><strong>{{ "%.2f"|format(p.total_score) }}</strong> Pkt.</td>
-                                {% if not is_locked %}
-                                <td style="text-align: right;">
-                                    <form action="{{ url_for('main.delete_player', t_id=tournament.id, number=p.number) }}" method="POST" style="display: inline;" onsubmit="return confirm('Spieler #{{ p.number }} wirklich löschen?');">
-                                        {% if wizard %}<input type="hidden" name="wizard" value="1">{% endif %}
-                                        <button type="submit" class="btn-icon-delete" title="Spieler #{{ p.number }} ({{ p.name }}) löschen" aria-label="Spieler löschen">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <polyline points="3 6 5 6 21 6"></polyline>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                <line x1="10" y1="11" x2="10" y2="17"></line>
-                                                <line x1="14" y1="11" x2="14" y2="17"></line>
-                                            </svg>
-                                        </button>
-                                    </form>
-                                </td>
-                                {% endif %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div class="empty-state">
-                    <p>Noch keine Spieler registriert. Trage rechts die Teilnehmer ein.</p>
-                </div>
-            {% endif %}
-        </div>
+{% if not is_locked %}
+<div class="players-add-grid">
+    <div class="card" style="margin-bottom: 0;">
+        <h3>Einzelnen Spieler hinzufügen</h3>
+        <form action="{{ url_for('main.add_player', t_id=tournament.id) }}" method="POST">
+            {% if wizard %}<input type="hidden" name="wizard" value="1">{% endif %}
+            <div class="form-group">
+                <label for="number">Spielernummer</label>
+                <input type="number" id="number" name="number" value="{{ next_number }}" class="form-input" required min="1">
+            </div>
+            <div class="form-group">
+                <label for="name">Name des Spielers</label>
+                <input type="text" id="name" name="name" placeholder="z.B. Max Mustermann" class="form-input" required autofocus>
+            </div>
+            <button type="submit" class="btn btn-success btn-block">+ Spieler hinzufügen</button>
+        </form>
     </div>
 
-    {% if not is_locked %}
-    <div class="side-column">
-        <div class="card">
-            <h3>Einzelnen Spieler hinzufügen</h3>
-            <form action="{{ url_for('main.add_player', t_id=tournament.id) }}" method="POST">
-                {% if wizard %}<input type="hidden" name="wizard" value="1">{% endif %}
-                <div class="form-group">
-                    <label for="number">Spielernummer</label>
-                    <input type="number" id="number" name="number" value="{{ next_number }}" class="form-input" required min="1">
-                </div>
-                <div class="form-group">
-                    <label for="name">Name des Spielers</label>
-                    <input type="text" id="name" name="name" placeholder="z.B. Max Mustermann" class="form-input" required autofocus>
-                </div>
-                <button type="submit" class="btn btn-success btn-block">+ Spieler hinzufügen</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h3>Schnellerfassung (Mehrere Spieler)</h3>
-            <p class="form-hint">Namen zeilenweise eingeben. Nummern werden automatisch ab #{{ next_number }} vergeben.</p>
-            <form action="{{ url_for('main.bulk_add_players', t_id=tournament.id) }}" method="POST">
-                {% if wizard %}<input type="hidden" name="wizard" value="1">{% endif %}
-                <div class="form-group">
-                    <textarea name="names" rows="6" class="form-textarea" placeholder="Anna Schmidt&#10;Bernd Becker&#10;Clara Meyer&#10;David Koch"></textarea>
-                </div>
-                <button type="submit" class="btn btn-outline btn-block">Liste importieren</button>
-            </form>
-        </div>
+    <div class="card" style="margin-bottom: 0;">
+        <h3>Schnellerfassung (Mehrere Spieler)</h3>
+        <p class="form-hint">Namen zeilenweise eingeben. Nummern werden automatisch ab #{{ next_number }} vergeben.</p>
+        <form action="{{ url_for('main.bulk_add_players', t_id=tournament.id) }}" method="POST">
+            {% if wizard %}<input type="hidden" name="wizard" value="1">{% endif %}
+            <div class="form-group">
+                <textarea name="names" rows="4" class="form-textarea" placeholder="Anna Schmidt&#10;Bernd Becker&#10;Clara Meyer&#10;David Koch"></textarea>
+            </div>
+            <button type="submit" class="btn btn-outline btn-block">Liste importieren</button>
+        </form>
     </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>Registrierte Spieler ({{ players | length }})</h2>
+    {% if players %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">Nr.</th>
+                        <th style="min-width: 260px;">Name</th>
+                        {% for r_num in (1, 2, 3, 4) %}
+                        <th style="text-align: center; width: 120px;">{{ tournament.get_game(r_num).name or ('Runde ' ~ r_num) }}</th>
+                        {% endfor %}
+                        <th style="width: 120px; text-align: right;">Punkte bisher</th>
+                        {% if not is_locked %}
+                        <th style="width: 70px; text-align: right;">Aktionen</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in players %}
+                    <tr>
+                        <td><span class="badge-number">#{{ p.number }}</span></td>
+                        <td style="min-width: 260px;">
+                            {% if is_locked %}
+                                <strong>{{ p.name }}</strong>
+                            {% else %}
+                            <form id="edit-form-{{ p.number }}" action="{{ url_for('main.edit_player', t_id=tournament.id, number=p.number) }}" method="POST" class="inline-edit-form">
+                                {% if wizard %}<input type="hidden" name="wizard" value="1">{% endif %}
+                                <input type="text" name="name" value="{{ p.name }}" class="form-input-sm" required>
+                                <button type="submit" class="btn-icon-cloud" title="In der Cloud speichern" aria-label="In der Cloud speichern">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+                                        <path d="M12 12v9"></path>
+                                        <path d="m16 16-4-4-4 4"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                        {% for r_num in (1, 2, 3, 4) %}
+                        {% set p_table = tournament.get_player_table(p.number, r_num) %}
+                        <td style="text-align: center; white-space: nowrap;">
+                            {% if p_table %}
+                                <a href="{{ url_for('main.round_detail', t_id=tournament.id, round_num=r_num) }}#table-{{ p_table.table_number }}" class="badge-number" style="text-decoration: none;">Tisch {{ p_table.table_label }}</a>
+                            {% else %}
+                                <span class="text-muted">–</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td style="text-align: right; white-space: nowrap;"><strong>{{ "%.2f"|format(p.total_score) }}</strong> Pkt.</td>
+                        {% if not is_locked %}
+                        <td style="text-align: right;">
+                            <form action="{{ url_for('main.delete_player', t_id=tournament.id, number=p.number) }}" method="POST" style="display: inline;" onsubmit="return confirm('Spieler #{{ p.number }} wirklich löschen?');">
+                                {% if wizard %}<input type="hidden" name="wizard" value="1">{% endif %}
+                                <button type="submit" class="btn-icon-delete" title="Spieler #{{ p.number }} ({{ p.name }}) löschen" aria-label="Spieler löschen">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                    </svg>
+                                </button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>Noch keine Spieler registriert. Trage oben die Teilnehmer ein.</p>
+        </div>
     {% endif %}
 </div>
 {% endblock %}
